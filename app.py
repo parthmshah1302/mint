@@ -1,38 +1,27 @@
 import streamlit as st
-import requests
-import json
-import time
+from openai import OpenAI
+import os 
+
+api_key = st.secrets["openai"]["OPENAI_API_KEY"] if "openai" in st.secrets else os.getenv("OPENAI_API_KEY")
+
+# Initialize OpenAI client
+client = OpenAI(api_key=api_key)
 
 def get_llm_response(prompt):
-    url = "http://localhost:11434/api/generate"
-    payload = {
-        "model": "llama3",  # or whichever model you're using
-        "prompt": prompt,
-        "stream": True
-    }
-
     try:
-        response = requests.post(url, json=payload, stream=True)
-        response.raise_for_status()
-
-        full_response = ""
-        for line in response.iter_lines():
-            if line:
-                decoded_line = line.decode('utf-8')
-                try:
-                    json_line = json.loads(decoded_line)
-                    if 'response' in json_line:
-                        full_response += json_line['response']
-                    if json_line.get('done', False):
-                        break
-                except json.JSONDecodeError as e:
-                    print(f"Error decoding JSON line: {e}")
-                    print(f"Problematic line: {decoded_line}")
-
-        return full_response.strip()
-
-    except requests.exceptions.RequestException as e:
-        print(f"Error making request to Ollama: {e}")
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful financial advisor."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=1000,
+            n=1,
+            temperature=0.7
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Error getting response from OpenAI: {e}")
         return None
 
 def generate_investment_advice(income, expenses, current_investments, risk_tolerance, goals):
@@ -78,11 +67,12 @@ def generate_investment_advice(income, expenses, current_investments, risk_toler
     investment_strategy = get_llm_response(strategy_prompt)
 
     if investment_strategy is None:
-        print("Failed to get investment strategy from LLM")
+        print("Failed to get investment strategy from OpenAI")
         return "Error: Could not generate investment strategy."
 
     return investment_strategy
 
+# The rest of your Streamlit code remains the same
 st.set_page_config(page_title="Intelligent Investment Advisor", page_icon="💼", layout="wide")
 
 st.title("Mint: Intelligent Investment Advisor")
