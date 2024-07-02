@@ -76,7 +76,7 @@ def generate_investment_advice(income, expenses, current_investments, risk_toler
 st.set_page_config(page_title="Intelligent Investment Advisor", page_icon="💼", layout="wide")
 
 st.title("Mint: Intelligent Investment Advisor")
-st.subheader("buildspace n&w s5 | gaudamire.")
+st.subheader("buildspace n&w s5 | gaudmire.")
 
 st.write("Please provide your financial information to receive personalized investment advice.")
 
